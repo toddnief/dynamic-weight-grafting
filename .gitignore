@@ -13,3 +13,4 @@ wandb/*
 *.egg-info
 *imdb_cache*
 .DS_Store
+.ipynb_checkpoints/
