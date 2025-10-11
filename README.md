@@ -1,6 +1,36 @@
-## Two Streams of Knowledge Retrieval: Enriching & Recalling in Transformers
+# Two Streams of Knowledge Retrieval: Enriching & Recalling in Transformers
 
-Paper link: [arXiv](https://arxiv.org/abs/2506.20746)
+This is the repo associated with the paper Two Streams of Knowledge Retrieval: Enriching & Recalling in Transformers: [arXiv](https://arxiv.org/abs/2506.20746)
+
+## Weight Grafting: Replacing Mechanisms, Not Just Information
+
+Understanding how fine-tuning changes neural networks requires more than observing differences in outputs or activations. **Weight grafting** provides a structured way to isolate and transplant internal mechanisms—across layers, modules, or even timesteps—to study *how* and *where* new capabilities emerge.
+
+In contrast to **activation patching**, which replaces *information* flowing through a model’s residual stream, **weight grafting** replaces the *mechanisms*—the actual learned weights—that generate those activations. By selectively swapping components (e.g. feedforward (FFN), attention (ATTN), etc.) components between pretrained and finetuned models, we can identify which components and token positions drive new behavior.
+
+<p align="center">
+  <img src="./img/alchemy_wg.jpg" width="600" alt="Activation patching vs weight grafting diagram">
+</p>
+
+In dynamic weight grafting, we graft dynamically at each token position during generation. We can also choose which model components (e.g. the outupt projection matrix and FFN at layer 17) to graft at each token position.
+
+<p align="center">
+  <img src="./img/dynamic_wg_schemes.png" width="600" alt="Position and component grafting schemes">
+</p>
+
+
+In our experiments, we show that, when finetuned on new relation information (e.g. "Zendaya stars in a new film with Twiggy"), grafting only the first entity *or* the last token before generation can be sufficient to recover finetuned information. Interestingly, grafting *all other* components gives no improved performance over the pretrained model.
+
+We also localize model behavior to specific components and find that, in the final token "recall" pathway, models use a combination of *task-specific attention* on the first entity and final token with *relation-specific* FFNs to correctly retrieve relation information.
+
+<p align="center">
+  <img src="./img/dynamic_wg_results.png" width="700" alt="Dynamic weight grafting schematic and results">
+</p>
+
+"Task-specific" components have been trained on text with similar syntax and structure to the evaluation text, but not on the specific relations being tested; the "relation-specific" components are the only ones that have seen the relation during finetuning.
+
+---
+# Running Experiments
 
 ## Create and activate the conda environment
 
