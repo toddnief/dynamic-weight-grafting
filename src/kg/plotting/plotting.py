@@ -89,8 +89,8 @@ def parse_path(results_file_path: Path, base_dir: Path):
 def calculate_metrics_from_file(results_json_path, top_k=5):
     """
     Reads a results.json file and calculates metrics.
-    Metrics: mean target rank, top-5 accuracy, mean target probability.
-    Assumes target token rank is 1-indexed for top-5 accuracy (rank <= 5).
+    Metrics: mean target rank, top-k accuracy, mean target probability.
+    Assumes target token rank is 1-indexed for top-k accuracy (rank <= k).
     """
     try:
         with open(results_json_path, "r") as f:
@@ -103,14 +103,14 @@ def calculate_metrics_from_file(results_json_path, top_k=5):
         # print(f"Warning: 'results' key missing or not a list in {results_json_path}")
         return {  # Return NaNs if structure is invalid but file was readable
             "mean_target_rank": float("nan"),
-            "top_5_accuracy": float("nan"),
+            "top_k_accuracy": float("nan"),
             "mean_target_prob": float("nan"),
         }
 
     if not data["results"]:  # Empty list of results
         return {
             "mean_target_rank": float("nan"),
-            "top_5_accuracy": float("nan"),
+            "top_k_accuracy": float("nan"),
             "mean_target_prob": float("nan"),
         }
 
@@ -336,6 +336,7 @@ def plot_metric(
     core_patches_only=False,
     short_title=True,
     font_size=18,
+    top_k=5,
 ):
     """
     Generates bar plots for a specified metric across patch configurations,
@@ -353,7 +354,7 @@ def plot_metric(
     save_dir.mkdir(parents=True, exist_ok=True)
 
     metric_config = {
-        "top_k_accuracy": {"label": "Top-5 Accuracy", "color": "viridis"},
+        "top_k_accuracy": {"label": f"Top-{top_k} Accuracy", "color": "viridis"},
         "mean_target_prob": {"label": "Mean Target Probability", "color": "plasma"},
         "mean_target_rank": {"label": "Mean Target Rank", "color": "cividis"},
     }
@@ -429,7 +430,7 @@ def plot_metric(
 
                     # Define title mapping
                     metric_title_mapping = {
-                        "top_k_accuracy": "Top-5 Accuracy",
+                        "top_k_accuracy": f"Top-{top_k} Accuracy",
                         "mean_target_prob": "Mean Target Probability",
                         "mean_target_rank": "Mean Target Rank",
                     }
