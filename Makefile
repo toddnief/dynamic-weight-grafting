@@ -36,6 +36,15 @@ create_datasets:
 	--error="$(err_file)" \
 	$(slurm_dir)create_datasets.slurm
 
+# Usage: make tmdb_wiki MAX_MOVIES=50 NUM_REWRITES=2 OUTPUT_PATH=data/tmdb_wiki.jsonl
+.PHONY: tmdb_wiki
+tmdb_wiki:
+	${SBATCH} \
+	--partition=$(PARTITION) \
+	--output="$(output_file)" \
+	--error="$(err_file)" \
+	$(slurm_dir)tmdb_wiki.slurm
+
 # Usage: make experiment CONFIG=config_experiments.yaml PATCH_CONFIG=config_patches.yaml
 # SINGLE_RUN=0 to do baseline eval
 # Also note: Using the eval command changes the context so need to explicity pass variables

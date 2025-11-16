@@ -20,57 +20,33 @@ from kg.utils.constants import (
 from kg.utils.utils_io import load_training_config, namespace_to_dict
 
 
-def load_counterfact_dataset(n_examples=1000):
-    dataset = load_dataset("NeelNanda/counterfact-tracing")
-    dataset["train"] = dataset["train"].select(range(n_examples))
-
-    LOGGER.info(f"Loaded {len(dataset['train'])} examples from Counterfact dataset")
-    LOGGER.info(f"Examples: {dataset['train'][0]}")
-
-    # Convert examples to strings for training
-    dataset["train"] = dataset["train"].map(
-        lambda x: {"text": [p + t for p, t in zip(x["prompt"], x["target_false"])]},
-        batched=True,
-    )
-    return dataset
-
-
 def create_dataset(cfg, preprocess_data, val_split=0.2):
-    ### LOAD FROM HF ###
-    if cfg.data_options.dataset_name == "counterfact":
-        dataset = load_counterfact_dataset(cfg.data_options.n_examples)
-        dataset = dataset.map(preprocess_data, batched=True)
     ### CUSTOM DATA PREP ###
-    else:
-        dataset_dir = (
-            DATA_DIR
-            / cfg.data_options.dataset_name
-            / cfg.data_options.dataset_dir
-            / "dataset"
-        )
+    dataset_dir = (
+        DATA_DIR
+        / cfg.data_options.dataset_name
+        / cfg.data_options.dataset_dir
+        / "dataset"
+    )
 
-        if cfg.data_options.dataset_type == "A2B":
-            data_files = {
-                "train": [
-                    str(f) for f in dataset_dir.glob("*.jsonl") if "A2B" in f.name
-                ]
-            }
-            LOGGER.info(f"Loading custom dataset: {data_files}...")
-            dataset = load_dataset("json", data_files=data_files)
-            dataset = dataset.map(preprocess_data, batched=True)
-        elif cfg.data_options.dataset_type == "B2A":
-            data_files = {
-                "train": [
-                    str(f) for f in dataset_dir.glob("*.jsonl") if "B2A" in f.name
-                ]
-            }
-            LOGGER.info(f"Loading custom dataset: {data_files}...")
-            dataset = load_dataset("json", data_files=data_files)
-            dataset = dataset.map(preprocess_data, batched=True)
-        elif cfg.data_options.dataset_type == "all":
-            LOGGER.info(f"Loading custom dataset: {dataset_dir}...")
-            dataset = load_dataset("json", data_dir=dataset_dir)
-            dataset = dataset.map(preprocess_data, batched=True)
+    if cfg.data_options.dataset_type == "A2B":
+        data_files = {
+            "train": [str(f) for f in dataset_dir.glob("*.jsonl") if "A2B" in f.name]
+        }
+        LOGGER.info(f"Loading custom dataset: {data_files}...")
+        dataset = load_dataset("json", data_files=data_files)
+        dataset = dataset.map(preprocess_data, batched=True)
+    elif cfg.data_options.dataset_type == "B2A":
+        data_files = {
+            "train": [str(f) for f in dataset_dir.glob("*.jsonl") if "B2A" in f.name]
+        }
+        LOGGER.info(f"Loading custom dataset: {data_files}...")
+        dataset = load_dataset("json", data_files=data_files)
+        dataset = dataset.map(preprocess_data, batched=True)
+    elif cfg.data_options.dataset_type == "all":
+        LOGGER.info(f"Loading custom dataset: {dataset_dir}...")
+        dataset = load_dataset("json", data_dir=dataset_dir)
+        dataset = dataset.map(preprocess_data, batched=True)
 
     dataset = dataset["train"].train_test_split(test_size=val_split)
     dataset["validation"] = dataset.pop("test")
