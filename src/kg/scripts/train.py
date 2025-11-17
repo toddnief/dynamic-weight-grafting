@@ -21,7 +21,6 @@ from kg.utils.utils_io import load_training_config, namespace_to_dict
 
 
 def create_dataset(cfg, preprocess_data, val_split=0.2):
-    ### CUSTOM DATA PREP ###
     dataset_dir = (
         DATA_DIR
         / cfg.data_options.dataset_name
@@ -47,6 +46,12 @@ def create_dataset(cfg, preprocess_data, val_split=0.2):
         LOGGER.info(f"Loading custom dataset: {dataset_dir}...")
         dataset = load_dataset("json", data_dir=dataset_dir)
         dataset = dataset.map(preprocess_data, batched=True)
+
+    # Pick up val_split from config if present, otherwise use default
+    data_options = getattr(cfg, "data_options", None)
+    if data_options is not None and hasattr(data_options, "val_split"):
+        val_split = data_options.val_split
+    LOGGER.info(f"Using val_split: {val_split}")
 
     dataset = dataset["train"].train_test_split(test_size=val_split)
     dataset["validation"] = dataset.pop("test")
